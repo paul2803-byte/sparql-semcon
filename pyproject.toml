@@ -1,0 +1,65 @@
+[project]
+name = "sc-sparql"
+version = "0.1.0"
+description = "Read-only SPARQL 1.1 query layer for OwnYourData Semantic Containers"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pyoxigraph>=0.4,<0.5",
+    "morph-kgc>=2.7",
+    "httpx>=0.27",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "structlog>=24.1",
+]
+
+# morph-kgc pins pyoxigraph<0.4 for its optional `materialize_oxigraph` output,
+# which this project does not use (we consume its rdflib output). Override the
+# pin so our embedded store can use the current pyoxigraph 0.4 API.
+[tool.uv]
+override-dependencies = ["pyoxigraph>=0.4,<0.5"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "respx>=0.21",
+    "ruff>=0.6",
+    "mypy>=1.11",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sc_sparql"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["morph_kgc.*", "rdflib.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+    # deprecation noise from rdflib's bundled pyparsing usage and starlette's test client
+    "ignore:.*deprecated - use.*",
+    "ignore:'parseAll' argument is deprecated.*",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated.*",
+]

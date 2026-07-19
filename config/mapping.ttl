@@ -1,0 +1,30 @@
+@prefix rr:  <http://www.w3.org/ns/r2rml#> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql:  <http://semweb.mmlab.be/ns/ql#> .
+@prefix ex:  <http://example.org/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Example mapping: turns a JSON array of records like
+#   [ {"id": "1", "value": "42.5"}, ... ]
+# into
+#   <http://example.org/id/1> a ex:Record ; ex:value "42.5"^^xsd:decimal .
+#
+# Replace this file with your own RML/R2RML mapping (RML_MAPPING_PATH).
+# The rml:source value below is a placeholder: sc-sparql always feeds the
+# JSON snapshot fetched from the Semantic Container to the mapping engine,
+# overriding whatever file name is declared here.
+
+<#RecordMapping>
+  rml:logicalSource [
+    rml:source "data.json" ;
+    rml:referenceFormulation ql:JSONPath ;
+    rml:iterator "$[*]"
+  ] ;
+  rr:subjectMap [
+    rr:template "http://example.org/id/{id}" ;
+    rr:class ex:Record
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ex:value ;
+    rr:objectMap [ rml:reference "value" ; rr:datatype xsd:decimal ]
+  ] .

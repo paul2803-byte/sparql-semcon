@@ -1,0 +1,23 @@
+# Example deployment: an unmodified Semantic Container (oydeu/dc-base)
+# with sc-sparql running as a sidecar.
+services:
+  dc-base:
+    image: oydeu/dc-base:latest
+    ports:
+      - "3000:3000"
+
+  sc-sparql:
+    build: .
+    depends_on:
+      - dc-base
+    environment:
+      CONTAINER_DATA_URL: http://dc-base:3000/api/data
+      RML_MAPPING_PATH: /app/config/mapping.ttl
+      SYNC_ON_STARTUP: "true"
+      SYNC_INTERVAL_SECONDS: "0"
+      LOG_LEVEL: INFO
+    volumes:
+      # Mount your own RML mapping over the shipped example.
+      - ./config:/app/config:ro
+    ports:
+      - "8000:8000"
