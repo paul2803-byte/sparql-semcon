@@ -6,9 +6,7 @@ from tests.conftest import SAMPLE_TRIPLES
 SELECT_ALL = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }"
 
 
-def _post_query(
-    client: TestClient, query: str, *, accept: str | None = None
-) -> Response:
+def _post_query(client: TestClient, query: str, *, accept: str | None = None) -> Response:
     headers = {"Content-Type": "application/sparql-query"}
     if accept is not None:
         headers["Accept"] = accept
@@ -82,9 +80,7 @@ def test_update_via_form_field_is_400(client: TestClient) -> None:
 
 
 def test_update_query_is_400(client: TestClient) -> None:
-    response = _post_query(
-        client, "INSERT DATA { <http://x/s> <http://x/p> <http://x/o> }"
-    )
+    response = _post_query(client, "INSERT DATA { <http://x/s> <http://x/p> <http://x/o> }")
     assert response.status_code == 400
 
 
