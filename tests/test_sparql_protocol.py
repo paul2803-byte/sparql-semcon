@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+
 from tests.conftest import SAMPLE_TRIPLES
 
 SELECT_ALL = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }"

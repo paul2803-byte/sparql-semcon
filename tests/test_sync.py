@@ -1,6 +1,7 @@
 import respx
 from fastapi.testclient import TestClient
 from httpx import Response
+
 from tests.conftest import DATA_URL, SAMPLE_TRIPLES
 
 
