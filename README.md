@@ -20,7 +20,7 @@ It is the modern successor of the legacy
                  ┌──────────────────────────────────────────────┐
    SPARQL        │              sc-sparql (this app)             │
    client  ───▶  │                                              │
-  GET/POST       │  FastAPI ──▶ query handler ──▶ Oxigraph store │
+  POST           │  FastAPI ──▶ query handler ──▶ Oxigraph store │
   /sparql        │                                    ▲          │
                  │  sync: fetch ─▶ RML mapping ───────┘          │
                  └───────┬──────────────────────────────────────┘
@@ -39,9 +39,9 @@ It is the modern successor of the legacy
    the old one **atomically**, so queries never see a half-loaded graph.
    Syncs run at startup, optionally on a timer, and on demand via
    `POST /refresh`.
-2. **Query** — clients send standard SPARQL 1.1 queries to `/sparql` and get
-   results in the format requested via the `Accept` header. The endpoint is
-   strictly **read-only**: SPARQL Update operations are rejected.
+2. **Query** — clients `POST` SPARQL queries in the request body to `/sparql`
+   and get results in the format requested via the `Accept` header. The
+   endpoint is strictly **read-only**: SPARQL Update operations are rejected.
 
 ## Quickstart
 
@@ -56,9 +56,10 @@ This starts an unmodified `oydeu/dc-base` Semantic Container on port 3000 and
 has run, query away:
 
 ```bash
-curl -G http://localhost:8000/sparql \
-  --data-urlencode 'query=SELECT * WHERE { ?s ?p ?o } LIMIT 10' \
-  -H 'Accept: application/sparql-results+json'
+curl http://localhost:8000/sparql \
+  -H 'Content-Type: application/sparql-query' \
+  -H 'Accept: application/sparql-results+json' \
+  --data 'SELECT * WHERE { ?s ?p ?o } LIMIT 10'
 ```
 
 ### Standalone against an existing container
@@ -85,31 +86,25 @@ Interactive OpenAPI documentation is served at <http://localhost:8000/docs>.
 
 ## Using the SPARQL endpoint
 
-`/sparql` implements the query operation of the
-[SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/), so any
-standard SPARQL client, library, or federation engine can talk to it.
+`POST /sparql` accepts the SPARQL query in the request body. **POST** is used
+(not PUT) because a query is a processing request, not a replacement of the
+`/sparql` resource — matching HTTP semantics and the body binding of the
+[SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/).
 
-**GET** (query in the URL):
-
-```bash
-curl -G http://localhost:8000/sparql \
-  --data-urlencode 'query=SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }'
-```
-
-**POST, form-encoded:**
-
-```bash
-curl http://localhost:8000/sparql \
-  --data-urlencode 'query=ASK { ?s a <http://example.org/ns#Record> }'
-```
-
-**POST, raw query body:**
+**Raw query body** (`application/sparql-query`):
 
 ```bash
 curl http://localhost:8000/sparql \
   -H 'Content-Type: application/sparql-query' \
   -H 'Accept: text/csv' \
   --data 'SELECT ?s ?value WHERE { ?s <http://example.org/ns#value> ?value }'
+```
+
+**Form-encoded body:**
+
+```bash
+curl http://localhost:8000/sparql \
+  --data-urlencode 'query=ASK { ?s a <http://example.org/ns#Record> }'
 ```
 
 **Result formats** (choose via the `Accept` header):
@@ -220,7 +215,7 @@ src/sc_sparql/
 ├── sync.py      # fetch → map → atomic reload pipeline
 ├── mapping.py   # morph-kgc (RML) wrapper
 ├── store.py     # TripleStore protocol + embedded Oxigraph implementation
-├── sparql.py    # SPARQL protocol parsing + content negotiation
+├── sparql.py    # SPARQL POST body parsing + content negotiation
 └── errors.py    # typed errors mapped to HTTP status codes
 ```
 

@@ -101,9 +101,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             status = 500
         return JSONResponse({"error": str(exc)}, status_code=status)
 
-    @app.api_route("/sparql", methods=["GET", "POST"])
+    @app.post("/sparql")
     async def sparql(request: Request) -> Response:
-        """SPARQL 1.1 Protocol query endpoint (read-only)."""
+        """Run a SPARQL query sent in the request body (read-only)."""
         return await handle_sparql_request(request, store, settings)
 
     @app.post("/refresh")

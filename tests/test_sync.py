@@ -22,7 +22,11 @@ def test_refresh_picks_up_new_data(client: TestClient, container_mock: respx.Moc
     assert response.json()["triples"] == 6  # 3 records x (type + value)
 
     count_query = "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }"
-    result = client.get("/sparql", params={"query": count_query}).json()
+    result = client.post(
+        "/sparql",
+        content=count_query,
+        headers={"Content-Type": "application/sparql-query"},
+    ).json()
     assert result["results"]["bindings"][0]["n"]["value"] == "6"
 
 
@@ -41,6 +45,10 @@ def test_old_data_stays_queryable_after_failed_refresh(
     container_mock.get(DATA_URL).mock(return_value=Response(503))
     assert client.post("/refresh").status_code == 502
 
-    response = client.get("/sparql", params={"query": "SELECT * WHERE { ?s ?p ?o }"})
+    response = client.post(
+        "/sparql",
+        content="SELECT * WHERE { ?s ?p ?o }",
+        headers={"Content-Type": "application/sparql-query"},
+    )
     assert response.status_code == 200
     assert len(response.json()["results"]["bindings"]) == SAMPLE_TRIPLES
