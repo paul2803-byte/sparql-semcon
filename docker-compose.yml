@@ -5,13 +5,23 @@ services:
     image: oydeu/dc-base:latest
     ports:
       - "3000:3000"
+    environment:
+      # Allow inter-container calls from sc-sparql (Host: dc-base:3000).
+      # Without this, Rails HostAuthorization returns 403 Forbidden.
+      RAILS_CONFIG_HOSTS: dc-base
+    # oydeu/dc-base ships with a leftover Rails server.pid; without this,
+    # Puma exits immediately with "A server is already running".
+    tmpfs:
+      - /usr/src/app/tmp/pids
 
   sc-sparql:
     build: .
     depends_on:
       - dc-base
     environment:
-      CONTAINER_DATA_URL: http://dc-base:3000/api/data
+      # f=plain returns the stored items as a JSON array (matches config/mapping.ttl).
+      # Default /api/data wraps each row as {data, meta, id, dri, ...}, which breaks the example mapping.
+      CONTAINER_DATA_URL: http://dc-base:3000/api/data?f=plain
       RML_MAPPING_PATH: /app/config/mapping.ttl
       SYNC_ON_STARTUP: "true"
       SYNC_INTERVAL_SECONDS: "0"

@@ -9,6 +9,10 @@
 # into
 #   <http://example.org/id/1> a ex:Record ; ex:value "42.5"^^xsd:decimal .
 #
+# For oydeu/dc-base, fetch with ?f=plain so the API returns that flat array.
+# Default GET /api/data wraps rows as { "data": {...}, "meta": {...}, "id": ... };
+# if you use that shape, change the iterator to "$[*].data" (and keep references).
+#
 # Replace this file with your own RML/R2RML mapping (RML_MAPPING_PATH).
 # The rml:source value below is a placeholder: sc-sparql always feeds the
 # JSON snapshot fetched from the Semantic Container to the mapping engine,

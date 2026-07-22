@@ -8,7 +8,9 @@ RUN uv sync --frozen --no-install-project --no-dev
 
 COPY src ./src
 COPY README.md LICENSE ./
-RUN uv sync --frozen --no-dev
+# --no-editable: install a real wheel into .venv so the runtime stage
+# (which only copies .venv, not src/) can import sc_sparql.
+RUN uv sync --frozen --no-dev --no-editable
 
 # --- runtime stage: slim image, non-root ---------------------------------------
 FROM python:3.12-slim-bookworm
