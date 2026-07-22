@@ -9,7 +9,11 @@ def test_health_before_first_sync(cold_client: TestClient) -> None:
 
 
 def test_sparql_before_first_sync_is_503(cold_client: TestClient) -> None:
-    response = cold_client.get("/sparql", params={"query": "SELECT * WHERE { ?s ?p ?o }"})
+    response = cold_client.post(
+        "/sparql",
+        content="SELECT * WHERE { ?s ?p ?o }",
+        headers={"Content-Type": "application/sparql-query"},
+    )
     assert response.status_code == 503
 
 

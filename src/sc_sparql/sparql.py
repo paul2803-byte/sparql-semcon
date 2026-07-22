@@ -1,4 +1,4 @@
-"""SPARQL 1.1 Protocol (query operation only) request handling."""
+"""SPARQL query request handling (POST with query in the body)."""
 
 from __future__ import annotations
 
@@ -25,15 +25,11 @@ _UPDATE_REJECTION = "SPARQL Update is not supported: this endpoint is read-only"
 
 
 async def _extract_query(request: Request) -> str:
-    """Extract the query string per the SPARQL 1.1 Protocol (GET, POST form, POST direct)."""
-    if request.method == "GET":
-        if "update" in request.query_params:
-            raise QueryError(_UPDATE_REJECTION)
-        query = request.query_params.get("query")
-        if query is None:
-            raise QueryError("missing required 'query' parameter")
-        return query
+    """Extract the SPARQL query from the POST body.
 
+    Accepts either a raw ``application/sparql-query`` body or a
+    ``application/x-www-form-urlencoded`` body with a ``query`` field.
+    """
     content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
     body = await request.body()
     if content_type == "application/sparql-update":
